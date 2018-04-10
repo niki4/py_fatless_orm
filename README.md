@@ -1,13 +1,12 @@
-# py_fatless_orm
-Ridiculously simple ORM (Object-Relational Mapping) layer to get your Python objects talking with SQLite
+Save time on constructing SQL queries, use your Python objects instead!
 
 # Key features
-* Complete Object-specified communication with the DB. Save time on constructing SQL queries, use your Python objects instead!
+* Complete Object-specified communication with the DB.
 * Supports create/delete tables, insert/update/remove values (rows)
 * DB consistency with built in automated functions:
-**  DB connection open and close on each request despite it result (failed/success).
-**  Commit on each success request and transaction rollback on failed requests.
-**  DB schema validation on INSERT/UPDATE requests.
+  - DB connection open and close on each request despite it result (failed/success).
+  - Commit on each success request and transaction rollback on failed requests.
+  - DB schema validation on INSERT/UPDATE requests.
 
 # Not available, but planned to implement:
 * Filters/Order By/Group By
@@ -17,7 +16,7 @@ Ridiculously simple ORM (Object-Relational Mapping) layer to get your Python obj
 
 # Installation
 Once you've cloned the repo from GitHub, make sure you've created a virtual environment for experiments.
-```
+```python
 sudo pip3 install virtualenv
 python3 -m virtualenv ./venv
 source venv/bin/activate
@@ -29,14 +28,14 @@ Basic CRUD (Create-Read-Update-Delete) operations using the ORM are demonstrated
 Alternatively, you could use the ORM as a library.
 
 DB model classes currently resides in lib/models.py, on your own project it may resides on your choice, but bear in mind mandatory conditions that should be met in order to your class considered as DB model:
-1. It must be derived from 'Base' class (from lib/models.py)
-2. It must have __tablename__ attribute with string value (ascii symbols, preferably)
+1. It must be derived from _Base_ class (from lib/models.py)
+2. It must have `__tablename__` attribute with string value (ascii symbols, preferably)
 3. It must contain number of desired fields (columns) defined to be created/used for that table.
 Use following format and arguments order. Please, see the [SQLite and Python types](https://docs.python.org/3/library/sqlite3.html#sqlite-and-python-types) for list of supported types.
 
 name = (type, 'required'/'not_required')
 
-```
+```python
 # content of lib/models.py
 
 class User(Base):
@@ -47,23 +46,23 @@ class User(Base):
     username = (str, 'not_required')
 ```
 
-Back to usage. First we need to import the 'Database' class from core and DB models classes, like 'User' in the example:
-```
+Back to usage. First we need to import the `Database` class from core and DB models classes, like `User` in the example:
+```python
 # content of examples/models.py
 
 from lib.core import Database
 from lib.models import User
 ```
 
-We would need to create a connection object from Database (yet you may set your own 'provider' instead of sqlite3 or 'db_name')
-```
+We would need to create a connection object from Database (yet you may set your own `provider` instead of sqlite3 and custom `db_name`)
+```python
 # content of examples/models.py
 
 conn = Database(db_name='test_db.sqlite').get_connection()
 ```
 
 Now you can rock and roll with your DB without writing a piece of SQL!
-```
+```python
 # content of examples/models.py
 
 # Create a table with name defined in __tablename__ attr of the model class.
