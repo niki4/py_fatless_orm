@@ -1,5 +1,6 @@
 import sqlite3
 
+
 class Database:
 
     def __init__(self, provider=sqlite3, db_name=''):
@@ -10,53 +11,52 @@ class Database:
         return self.provider.connect(self.db_name)
 
 
-
 class Query:
 
-    def __init__(self, db_connection):
+    def __init__(self, db_connection, table_name):
         self._db_connection = db_connection
+        self.table_name = table_name
 
-    def create_table(self):
+    def create_table(self, table_schema):
         """ CREATE TABLE ... """
         try:
             with self._db_connection:
-                self._db_connection.execute('''CREATE TABLE test (date text, trans text, symbol text)''')
+                self._db_connection.execute('CREATE TABLE %s (%s);' % (self.table_name, ', '.join(table_schema)))
         except sqlite3.Error as e:
             print("Unable to create a table. Transaction rolled back. Here is some debug info:", e)
-        # cursor = self._db.cursor()
-        # cursor.execute('''CREATE TABLE test (date text, trans text, symbol text)''')
 
-    def fetchall(self):
-        """ SELECT * FROM ... """
-        pass
+    def fetchall(self, columns):
+        """ SELECT * FROM table ... """
+        return self._db_connection.execute(
+            'SELECT %s FROM %s;' % (', '.join(columns), self.table_name))
 
-    def insert(self):
-        """ INSERT INTO ... """
-        cursor = self._db_connection.cursor()
-        cursor.execute('''INSERT INTO test VALUES (?, ?, ?)''', ('2018-04-09', 'Test value', 'Hello'))
+    def insert(self, **data):
+        """ INSERT INTO table ... """
+        columns = [str(x) for x in data.keys()]
+        values = [str(x) if isinstance(x, int) else "'{}'".format(x) for x in data.values()]
 
-    def fix_transaction(self):
-        self._db_connection.commit()
-        self._db_connection.close()
+        with self._db_connection:
+            self._db_connection.execute(
+                'INSERT INTO %s (%s) VALUES (%s);' %
+                (self.table_name, ', '.join(columns), ', '.join(values)))
 
-    def Table(self, tablename):
-        pass
+    def update(self, **data):
+        """UPDATE table SET ..."""
+        columns = [str(x) for x in data.keys()]
+        values = [str(x) if isinstance(x, int) else "'{}'".format(x) for x in data.values()]
+        update_data = ['{} = {}'.format(field[0], field[1]) for field in zip(columns, values)]
 
+        with self._db_connection:
+            self._db_connection.execute(
+                'UPDATE %s SET %s;' %
+                (self.table_name, ', '.join(update_data)))
 
-# connection = Database(provider=sqlite3, db_name='test_db.sqlite').get_connection()
-#
-# query = Query(connection)
-# query.create_table()
-# query.insert()
-# query.fix_transaction()
-#
-# from .v2_models import User
-# User(id=1, username='doe', connection=conn).select_all()
+    def delete(self):
+        """DELETE FROM table """
+        with self._db_connection:
+            return self._db_connection.execute("DELETE FROM %s" % self.table_name)
 
-        # cursor = conn.cursor()
-        # cursor.execute('''CREATE TABLE test (date text, trans text, symbol text)''')
-        # cursor.execute('''INSERT INTO test VALUES ('2018-04-09', 'Test value', 'Hello')''')
-        # conn.commit()
-        # conn.close()
-    # query = Query(db).Table('Product').fetchall()
-    # print([row for row in query])
+    def delete_table(self):
+        """ DROP TABLE IF EXISTS table """
+        with self._db_connection:
+            self._db_connection.execute("DROP TABLE IF EXISTS %s" % self.table_name)

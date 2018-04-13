@@ -1,5 +1,5 @@
 from lib.core import Database
-from lib.models import User
+from examples.models import User
 
 
 if __name__ == '__main__':
